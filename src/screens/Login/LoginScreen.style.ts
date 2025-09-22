@@ -1,0 +1,121 @@
+import { StyleSheet } from "react-native";
+
+export default StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        alignItems:'flex-start',
+        justifyContent:'center',
+        paddingHorizontal: 15,
+      },
+      logo: {
+        width: 120,
+        height: 120,
+        marginBottom: 16,
+      },
+      title: {
+        fontSize: 28,
+        fontWeight: '800',
+        color: '#222',
+        marginBottom: 4,
+      },
+      subtitle: {
+        marginBottom: 24,
+        color: '#666',
+        fontSize: 16,
+      },
+      inputContainer: {
+        width: '100%',
+        marginBottom: 18,
+        position: 'relative',
+      },
+      input: {
+        width: '100%',
+        height: 50,
+        backgroundColor: '#fff',
+        borderRadius: 50,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        color: '#111',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 30,
+        elevation: 3,
+      },
+      eyeButton: {
+        position: 'absolute',
+        right: 16,
+        top: 14,
+      },
+      optionsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 16,
+      },
+      rememberMeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      checkbox: {
+        width: 20,
+        height: 20,
+        borderWidth: 1.5,
+        borderColor: '#4A90E2',
+        borderRadius: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      checkboxChecked: {
+        backgroundColor: '#4A90E2',
+      },
+      rememberMeText: {
+        marginLeft: 8,
+        color: '#555',
+        fontSize: 14,
+      },
+      forgotText: {
+        color: '#007bff',
+        fontSize: 14,
+      },
+      button: {
+        width: '100%',
+        backgroundColor: '#4A90E2',
+        paddingVertical: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 12,
+        shadowColor: '#4A90E2',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 4,
+      },
+      buttonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
+      },
+      signupContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        paddingHorizontal: 10,
+      },
+      signupText: {
+        color: '#555',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 4,
+      },
+      signupLink: {
+        color: '#4A90E2',
+        fontWeight: '700',
+      },
+      signupSubText: {
+        color: '#777',
+        fontSize: 12,
+        textAlign: 'center',
+      },
+})
