@@ -23,32 +23,25 @@ android {
         versionName "1.0"
     }
 
-    signingConfigs {
-        debug {
-            storeFile file('debug.keystore')
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
-        }
-
-        release {
-            storeFile file("my-release-key.keystore")    
-            storePassword "1234@Pawan"                    
-            keyAlias "my-key-alias"                       
-            keyPassword "1234@Pawan"                      
+signingConfigs {
+    release {
+        if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+            storeFile file(MYAPP_UPLOAD_STORE_FILE)
+            storePassword MYAPP_UPLOAD_STORE_PASSWORD
+            keyAlias MYAPP_UPLOAD_KEY_ALIAS
+            keyPassword MYAPP_UPLOAD_KEY_PASSWORD
         }
     }
+}
 
-    buildTypes {
-        debug {
-            signingConfig signingConfigs.debug
-        }
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
-        }
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+        minifyEnabled false
+        shrinkResources false
     }
+}
+
 }
 
 dependencies {

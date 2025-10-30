@@ -1,27 +1,35 @@
-import React, { useRef, useState } from "react";
-import { ScrollView, StyleSheet, Text, View, ToastAndroid, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AuthBackground from "../../components/AuthBackground";
-import Card from "../../components/Card";
-import Input from "../../components/Input";
-import EmailInput from "../../components/EmailInput";
-import PasswordInput from "../../components/PasswordInput";
-import ButtonUi from "../../components/ButtonUi";
-import PhoneInput from "react-native-international-phone-number";
-import Link from "../../components/Link";
-import { styles } from "./SignupScreen.style";
-import { axiosInstance } from "../../Service/api";
+import React, { useRef, useState } from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  ToastAndroid,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AuthBackground from '../../components/AuthBackground';
+import Card from '../../components/Card';
+import Input from '../../components/Input';
+import EmailInput from '../../components/EmailInput';
+import PasswordInput from '../../components/PasswordInput';
+import ButtonUi from '../../components/ButtonUi';
+import PhoneInput from 'react-native-international-phone-number';
+import Link from '../../components/Link';
+import { styles } from './SignupScreen.style';
+import { axiosInstance } from '../../Service/api';
 
 const SignupScreen = ({ navigation }: { navigation: any }) => {
-  const [email, setEmail] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [countryCode, setCountryCode] = useState<any>("IN");
-  const formattedPhoneNumber = ()=>{
-    return `${countryCode?.idd?.root || ""}${phoneNumber}`.replace(/\s+/g, '');
-  }
+  const [email, setEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState<any>('IN');
+  const [loading, setLoading] = useState(false);
+
+  const formattedPhoneNumber = () => {
+    return `${countryCode?.idd?.root || ''}${phoneNumber}`.replace(/\s+/g, '');
+  };
   const [errors, setErrors] = useState<any>({});
   const phoneInput = useRef<any>(null);
 
@@ -30,36 +38,36 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
     let newErrors: any = {};
 
     if (!companyName.trim()) {
-      newErrors.companyName = "Company name is required";
+      newErrors.companyName = 'Company name is required';
       valid = false;
     }
 
     if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone number is required";
+      newErrors.phoneNumber = 'Phone number is required';
       valid = false;
     }
 
     if (!email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = 'Email is required';
       valid = false;
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = 'Invalid email format';
       valid = false;
     }
 
     if (!password) {
-      newErrors.password = "Password is required";
+      newErrors.password = 'Password is required';
       valid = false;
     } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = 'Password must be at least 6 characters';
       valid = false;
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = "Please confirm password";
+      newErrors.confirmPassword = 'Please confirm password';
       valid = false;
     } else if (confirmPassword !== password) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = 'Passwords do not match';
       valid = false;
     }
 
@@ -68,35 +76,45 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
   };
 
   const handleSignup = async () => {
-    if (validate()) {  
-      const payload={
-        company:companyName,
-        cpassword:confirmPassword,
-        phone:formattedPhoneNumber(),
-        email:email,
-        password:password,
-      }
-      try{
-        const result= await axiosInstance.post('/register',payload);
-        console.log(result.data);
-        if(result.data?.status === 'success'){
-          Alert.alert('Signup Successful', 'You can now log in with your credentials.');
-          ToastAndroid.show("Signup successful!", ToastAndroid.SHORT);
-          navigation.replace("Login");
-        }else{
+    if (validate()) {
+      const payload = {
+        company: companyName,
+        cpassword: confirmPassword,
+        phone: formattedPhoneNumber(),
+        email: email,
+        password: password,
+      };
+      console.log(payload);
+      setLoading(true);
+      try {
+        const result = await axiosInstance.post('/register', payload);
+        console.log(result.data.data.company_id);
+        if (result.data?.status === 'success') {
+          ToastAndroid.show('Signup successful!', ToastAndroid.SHORT);
+          navigation.replace('Email Verify', {
+            company_id: result.data.data.company_id,
+          });
+        } else {
           throw new Error('Signup failed');
         }
-      
-      }catch(error:any){
+      } catch (error: any) {
+        console.log(error.response);
+
         if (error.response?.data?.errors) {
           const apiErrors: string[] = error.response.data.errors;
           apiErrors.forEach(err => {
             ToastAndroid.show(err, ToastAndroid.LONG);
           });
-          setErrors((prev: any) => ({ ...prev, api: apiErrors.join("\n") }));
+          setErrors((prev: any) => ({ ...prev, api: apiErrors.join('\n') }));
         } else {
-          ToastAndroid.show("Something went wrong. Please try again.", ToastAndroid.LONG);
+          ToastAndroid.show(
+            'Something went wrong. Please try again.',
+            ToastAndroid.LONG,
+          );
         }
+        console.log(error);
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -104,12 +122,12 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <AuthBackground>
-        <View style={{ flex: 1, width: "100%" }}>
+        <View style={{ flex: 1, width: '100%' }}>
           <Card
             style={{
-              maxHeight: "90%",
-              justifyContent: "center",
-              height: "90%",
+              maxHeight: '90%',
+              justifyContent: 'center',
+              height: '90%',
               padding: 20,
               margin: 20,
             }}
@@ -122,7 +140,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                 value={companyName}
                 onChangeText={(text: string) => {
                   setCompanyName(text);
-                  setErrors((prev: any) => ({ ...prev, companyName: "" }));
+                  setErrors((prev: any) => ({ ...prev, companyName: '' }));
                 }}
                 placeholder="Company Name"
               />
@@ -134,9 +152,9 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                 defaultCountry="IN"
                 autoFocus={false}
                 value={phoneNumber}
-                onChangePhoneNumber={(num) => {
+                onChangePhoneNumber={num => {
                   setPhoneNumber(num);
-                  setErrors((prev: any) => ({ ...prev, phoneNumber: "" }));
+                  setErrors((prev: any) => ({ ...prev, phoneNumber: '' }));
                 }}
                 selectedCountry={countryCode}
                 onChangeSelectedCountry={setCountryCode}
@@ -145,7 +163,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                     borderWidth: 0,
                     borderRadius: 30,
                     marginBottom: 10,
-                    shadowColor: "#000",
+                    shadowColor: '#000',
                     shadowOffset: { width: 0, height: 3 },
                     shadowOpacity: 0.1,
                     shadowRadius: 30,
@@ -155,12 +173,12 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                   },
                   input: {
                     fontSize: 16,
-                    color: "#333",
-                    fontWeight: "500",
+                    color: '#333',
+                    fontWeight: '500',
                     borderRadius: 30,
                   },
                   flagContainer: {
-                    backgroundColor: "white",
+                    backgroundColor: 'white',
                     borderRadius: 30,
                   },
                 }}
@@ -175,7 +193,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                 value={email}
                 onChangeText={(text: string) => {
                   setEmail(text);
-                  setErrors((prev: any) => ({ ...prev, email: "" }));
+                  setErrors((prev: any) => ({ ...prev, email: '' }));
                 }}
                 placeholder="Email"
                 placeholderTextColor="#555"
@@ -189,7 +207,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                 value={password}
                 onChangeText={(text: string) => {
                   setPassword(text);
-                  setErrors((prev: any) => ({ ...prev, password: "" }));
+                  setErrors((prev: any) => ({ ...prev, password: '' }));
                 }}
                 placeholder="Password"
               />
@@ -201,7 +219,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
                 value={confirmPassword}
                 onChangeText={(text: string) => {
                   setConfirmPassword(text);
-                  setErrors((prev: any) => ({ ...prev, confirmPassword: "" }));
+                  setErrors((prev: any) => ({ ...prev, confirmPassword: '' }));
                 }}
                 placeholder="Re-enter Password"
               />
@@ -215,10 +233,10 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
 
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                  alignItems: "center",
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
                 }}
               >
                 <Text>* By Signup, you agree to our </Text>
@@ -227,26 +245,30 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
 
               <View
                 style={{
-                  width: "100%",
-                  alignItems: "center",
+                  width: '100%',
+                  alignItems: 'center',
                   marginBottom: 10,
                 }}
               >
-                <ButtonUi title="Signup" onPress={handleSignup} />
+                <ButtonUi
+                  title={loading ? 'Please wait...' : 'Signup'}
+                  onPress={!loading ? handleSignup : ()=>{}}
+                  disabled={loading}
+                />
               </View>
               <View
                 style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                  alignContent: "center",
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
+                  alignContent: 'center',
                 }}
               >
                 <Text>Already have an account? </Text>
                 <Link
                   text="Log In"
                   onPress={() => {
-                    navigation.navigate("Login");
+                    navigation.navigate('Login');
                   }}
                 />
               </View>
@@ -260,7 +282,7 @@ const SignupScreen = ({ navigation }: { navigation: any }) => {
 
 const localStyles = StyleSheet.create({
   error: {
-    color: "red",
+    color: 'red',
     fontSize: 12,
     marginBottom: 10,
     marginLeft: 10,

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 interface ButtonProps {
-  title: string;
+  title: string|any;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;

@@ -3,6 +3,7 @@ import CustomNavigationContainer from './src/utils/CustomNavigationContainer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { store } from './src/Stores';
+import 'react-native-gesture-handler';
 
 function App() {
   return (
