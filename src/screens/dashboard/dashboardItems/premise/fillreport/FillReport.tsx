@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Switch,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Alert,
 } from 'react-native';
 import CustomDropDown from '../../../../../components/CustomDropDown';
 import DatePicker from 'react-native-date-picker';
@@ -16,7 +17,10 @@ import * as DocumentPicker from '@react-native-documents/picker';
 import Icon from '@react-native-vector-icons/fontawesome';
 import { axiosInstance } from '../../../../../Service/api';
 
-const FillReport = () => {
+const FillReport = ({ navigation, route }: { navigation: any; route: any }) => {
+  const premiseId = route?.params?.premiseId;
+  console.log(premiseId, 'premiseId---');
+
   // Existing states
   const [system, setSystem] = useState('');
   const [inspectionDate, setInspectionDate] = useState(new Date());
@@ -46,15 +50,12 @@ const FillReport = () => {
   const [preferredComm, setPreferredComm] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [mailingAddress, setMailingAddress] = useState('');
-
-  // Error states
+  const [systems, setSystems] = useState<any>([]);
+  const [contacts, setContacts] = useState<any>([]);
+  const [contactTypes, setContactTypes] = useState<any>([]);
   const [errors, setErrors] = useState<any>({});
 
-  const systems = [
-    { label: 'System 1', value: 'system1' },
-    { label: 'System 2', value: 'system2' },
-    { label: 'System 3', value: 'system3' },
-  ];
+ 
   const reportTypes = [
     { label: 'Type 1', value: 'type1' },
     { label: 'Type 2', value: 'type2' },
@@ -64,16 +65,83 @@ const FillReport = () => {
     { label: 'Active', value: 'active' },
     { label: 'Inactive', value: 'inactive' },
   ];
-  const contactTypes = [
-    { label: 'Owner', value: 'owner' },
-    { label: 'Manager', value: 'manager' },
-    { label: 'Technician', value: 'technician' },
-  ];
+ 
   const preferredComms = [
     { label: 'Email', value: 'email' },
     { label: 'Phone', value: 'phone' },
     { label: 'SMS', value: 'sms' },
   ];
+
+  const getAllSystems = async () => {
+    try {
+      const result = await axiosInstance.get('/find/premise-ahj-system-type', {
+        params: {
+          premise_id: premiseId,
+          status: 1,
+        },
+      });
+  
+      console.log('result of systems list', result?.data);
+  
+      if (result?.data?.status === 'success' && Array.isArray(result?.data?.data)) {
+        const formattedSystems = result.data.data.map((item: any) => ({
+          label: item.ahj_system_type?.system_type?.system_name || 'Unknown',
+          value: item.ahj_system_type?.system_type?.id || '',
+        }));
+        setSystems(formattedSystems);
+      } else {
+        setSystems([]);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getAllContacts = async () => {
+    try {
+      const result = await axiosInstance.get('/address');
+      console.log('result of contacts list', result?.data);
+  
+      if (Array.isArray(result?.data?.data)) {
+        const formattedContacts = result.data.data.map((item: any) => {
+          const firstName = item.first_name || 'Unknown';
+          const email = item.email || 'No email';
+          const phone = item.phone_number || 'No phone';
+          return {
+            label: `${firstName} | ${email} | ${phone}`,
+            value: item.id,
+          };
+        });
+  
+        setContacts(formattedContacts);
+      } else {
+        setContacts([]);
+      }
+    } catch (error) {
+      console.log('Error fetching contacts:', error);
+      setContacts([]);
+    }
+  };
+  
+const getAllContactTypes= async () => {
+    try {
+      const result = await axiosInstance.get('/find/contact-types'); 
+      console.log('result of contact types list', result?.data);
+  
+      if (Array.isArray(result?.data?.data)) {
+        const formattedContactTypes = result.data.data.map((item: any) => ({
+          label: item.type || 'Unknown',
+          value: item.id || '',
+        }));
+        setContactTypes(formattedContactTypes);
+      } else {
+        setContactTypes([]);
+      }
+    } catch (error) {
+      console.log('Error fetching contact types:', error);
+      setContactTypes([]);
+    }
+  }
 
   const handlePickDocument = async () => {
     try {
@@ -153,11 +221,11 @@ const FillReport = () => {
     if (!validateReportForm()) return;
     const demoPayload = {
       model: {
-        system_type: '9#470#67516',
-        actual_inspection_date: '2025-10-29T18:30:00.000Z',
+        system_type: system,
+        actual_inspection_date: inspectionDate.toISOString().split('T')[0],
         filling_type: 1,
-        contact_id: null,
-        contact_ids: [36590],
+        contact_id: contact,
+        contact_ids: [contact],
         renewal_plan_id: null,
         file_type: null,
         file_data: [
@@ -177,10 +245,10 @@ const FillReport = () => {
             type: 'application/pdf',
           },
         ],
-        premise_id: 57853,
+        premise_id: premiseId,
         signature: '',
         ahj_group_id: null,
-        ahj_id: 40,
+        ahj_id: system,
         inspector_id: null,
         clone_flag: false,
         job_id: '000',
@@ -234,10 +302,10 @@ const FillReport = () => {
   const handleSubmitSystem = async () => {
     const demoPayload = {
       id: null,
-      premise_id: 57854,
-      ahj_system_type_id: 452,
-      status: 1,
-      last_date_of_service: '2025-10-22T18:30:00.000Z',
+      premise_id: premiseId,
+      ahj_system_type_id: ahjSystem,
+      status: status,
+      last_date_of_service: lastServiceDate.toISOString().split('T')[0],
       in_activation_reason: '',
     };
     if (!validateSystemForm()) return;
@@ -251,6 +319,14 @@ const FillReport = () => {
         demoPayload,
       );
       console.log('Response from API:', response);
+      setSystems((prev:any) => [
+        ...prev,
+        {
+          label: systems.find((s: any) => s.value === ahjSystem)?.label || '',
+          value: ahjSystem,
+        },
+      ]);
+      Alert.alert('Success', 'AHJ system added successfully');
       setModalVisible(false);
     } catch (error: any) {
       console.error('Error adding AHJ system:', error.response);
@@ -260,37 +336,34 @@ const FillReport = () => {
   const handleSubmitContact = () => {
     if (!validateContactForm()) return;
 
-    const payload = {
-      contactType,
-      contactName,
-      contactMobile,
-      preferredComm,
-      contactEmail,
-      mailingAddress,
-    };
-    console.log('✅ Contact Payload:', payload);
-  
     const demoPayload = {
       id: null,
-      first_name: 'Aman',
-      email: 'aman32@mightcode.com',
-      phone_number: '+1456789',
+      first_name: contactName,
+      email: contactEmail,
+      phone_number: contactMobile,
       emergency_phone_number: '+1456786789',
-      address: 'mohan23@mightcode.com',
-      type: 1,
-      premise_id: 57846,
+      address: mailingAddress,
+      type: contactType,
+      premise_id: premiseId,
       ahj_id: 48,
-      premises_ids: [57846],
+      premises_ids: [premiseId],
       is_default: false,
     };
     try {
       const response = axiosInstance.post('/address', demoPayload);
       console.log('Response from API:', response);
       setContactModalVisible(false);
+      Alert.alert('Success', 'Contact added successfully');
     } catch (error: any) {
       console.error('Error adding contact:', error.response);
     }
   };
+
+  useEffect(() => {
+    getAllSystems();
+    getAllContacts();
+    getAllContactTypes();
+  }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -359,7 +432,7 @@ const FillReport = () => {
               placeholder="Premise contact for email verification"
               value={contact}
               onChange={(i: any) => setContact(i.value)}
-              data={systems}
+              data={contacts}
             />
             {errors.contact && (
               <Text style={styles.error}>{errors.contact}</Text>

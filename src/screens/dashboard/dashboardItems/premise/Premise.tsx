@@ -1,12 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { axiosInstance } from '../../../../Service/api';
 
 const columns = [
-  'ID', 'Name', 'Address', 'Address Line 2', 'Jurisdiction',
-  'Ref.Num', 'Building No', 'Building License', 'Postal Code',
-  'Latitude', 'Longitude', 'Status', 'Fire Watch',
-  'Fire Watch Notice Sent At', 'Created At', 'Updated At', 'Action',
+  'ID',
+  'Name',
+  'Address',
+  'Address Line 2',
+  'Jurisdiction',
+  'Ref.Num',
+  'Building No',
+  'Building License',
+  'Postal Code',
+  'Latitude',
+  'Longitude',
+  'Status',
+  'Fire Watch',
+  'Fire Watch Notice Sent At',
+  'Created At',
+  'Updated At',
+  'Action',
 ];
 
 const PremiseTable = ({ navigation }: { navigation: any }) => {
@@ -17,13 +38,35 @@ const PremiseTable = ({ navigation }: { navigation: any }) => {
   };
 
   const handleNamePress = (premiseId: number) => {
-    Alert.alert('Premise Selected', `You selected premise with ID: ${premiseId}`);
+    Alert.alert(
+      'Premise Selected',
+      `You selected premise with ID: ${premiseId}`,
+    );
     navigation.navigate('Premise Details', { premiseId });
   };
 
   const getPremises = async () => {
     try {
-      const result = await axiosInstance.get('premise/premise-list');
+      const result = await axiosInstance.get('premise/premise-list', {
+        params: {
+          with: [
+            'ahj',
+            'city',
+            'systemtype',
+            'premiseAhjOccupancyType.ahjOccupancyType.occupancyType:id,name',
+            'ahjZone:id,name',
+            'managedBy',
+            'premiseAhjLabels.ahjLabel',
+            'premiseAhjSystemTypes',
+            'premiseAhjSystemTypes.ahjSystemType.systemType',
+            'contactsPremises',
+          ],
+          orderField: 'created_at',
+          orderBy: 'desc',
+          should_sort: true,
+        },
+      });
+      console.log('result of premise list', result?.data);
       setPremises(result?.data?.data || []);
     } catch (error) {
       console.log(error);
@@ -38,7 +81,10 @@ const PremiseTable = ({ navigation }: { navigation: any }) => {
     <View style={styles.container}>
       <View style={styles.headerContainer}>
         <Text style={styles.sectionTitle}>Premise Reports</Text>
-        <TouchableOpacity style={styles.createButton} onPress={handleCreatePremise}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={handleCreatePremise}
+        >
           <Text style={styles.createButtonText}>+ Create Premise</Text>
         </TouchableOpacity>
       </View>
@@ -53,19 +99,28 @@ const PremiseTable = ({ navigation }: { navigation: any }) => {
             ))}
           </View>
 
-          <ScrollView style={{ maxHeight: "100%" }} nestedScrollEnabled showsVerticalScrollIndicator>
+          <ScrollView
+            style={{ maxHeight: '100%' }}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+          >
             {premises.map((item: any, rowIndex: number) => (
               <View
                 key={item.id}
                 style={[
                   styles.row,
-                  { backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : '#ffffff' },
+                  {
+                    backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : '#ffffff',
+                  },
                 ]}
               >
                 <Text style={styles.cell}>{item.id}</Text>
                 <TouchableOpacity
                   style={styles.cell}
-                  onPress={() => handleNamePress(item.id)}
+                  onPress={() => {
+                    console.log(item);
+                    handleNamePress(item.id);
+                  }}
                 >
                   <Text style={styles.linkText}>{item.premise_name}</Text>
                 </TouchableOpacity>
@@ -79,11 +134,21 @@ const PremiseTable = ({ navigation }: { navigation: any }) => {
                 <Text style={styles.cell}>{item.postal_code}</Text>
                 <Text style={styles.cell}>{item.latitude}</Text>
                 <Text style={styles.cell}>{item.longitude}</Text>
-                <Text style={styles.cell}>{item.status === 2 ? 'Active' : 'Inactive'}</Text>
-                <Text style={styles.cell}>{item.on_fire_watch ? 'Yes' : 'No'}</Text>
-                <Text style={styles.cell}>{item.fire_watch_notice_sent_at || '-'}</Text>
-                <Text style={styles.cell}>{item.created_at?.split('T')[0]}</Text>
-                <Text style={styles.cell}>{item.updated_at?.split('T')[0]}</Text>
+                <Text style={styles.cell}>
+                  {item.status === 2 ? 'Active' : 'Inactive'}
+                </Text>
+                <Text style={styles.cell}>
+                  {item.on_fire_watch ? 'Yes' : 'No'}
+                </Text>
+                <Text style={styles.cell}>
+                  {item.fire_watch_notice_sent_at || '-'}
+                </Text>
+                <Text style={styles.cell}>
+                  {item.created_at?.split('T')[0]}
+                </Text>
+                <Text style={styles.cell}>
+                  {item.updated_at?.split('T')[0]}
+                </Text>
 
                 <TouchableOpacity onPress={() => console.log('View', item.id)}>
                   <Text style={[styles.cell, { color: '#007bff' }]}>View</Text>

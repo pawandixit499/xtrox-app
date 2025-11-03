@@ -97,7 +97,6 @@ const FirstStepPage = ({ navigation, currentStep, totalSteps, goToStep }: { navi
       setLogo(data?.logo ? { uri: data.logo } : null);
     } catch (err) {
       console.log(err);
-      // Set default country if fetch fails
       setCountry('231');
     }
   };
